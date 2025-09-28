@@ -1,10 +1,7 @@
 package com.example.homesvc.api;
 
-import com.example.homesvc.config.MatchStrategyConfig;
 import com.example.homesvc.dto.BookingView;
 import com.example.homesvc.dto.CreateBookingRequest;
-import com.example.homesvc.dto.QuoteRequest;
-import com.example.homesvc.dto.QuoteResponse;
 import com.example.homesvc.service.BookingOrchestrator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +20,6 @@ import java.util.Optional;
 public class BookingController {
   private final BookingOrchestrator orchestrator;
   private static final Logger log = LoggerFactory.getLogger(BookingController.class);
-  @PostMapping("/quote")
-  public QuoteResponse quote(@Valid @RequestBody QuoteRequest req){
-    return orchestrator
-            .quote(req);
-  }
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,
                 produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<BookingView> create(@Valid @RequestBody CreateBookingRequest req){

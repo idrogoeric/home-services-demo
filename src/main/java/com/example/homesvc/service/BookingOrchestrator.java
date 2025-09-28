@@ -16,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -30,36 +29,30 @@ public class BookingOrchestrator {
   private final ProviderMatchingService providerMatching;
   private final PaymentService payments;
   private final NotificationService notify;
-//  private final AtomicLong seq = new AtomicLong(1000);
   private final BookingStateMachine stateMachine;
   private final ComponentsFactory factory;
   private final SequenceService sequenceService;
+
+  private final QuoteService quoteService;
+  private final BookingService bookingService;
 
   public QuoteResponse quote(QuoteRequest req){
     var user = users.findById(req.userId)
             .orElseThrow();
     UserTier tier = req.tierOverride != null ? req.tierOverride : user.getTier();
-    var calc = pricing.estimate(
-            req.region,
-            req.serviceType,
-            req.urgent,
-            tier,
-            req.voucherCode,
-            req.desiredAt);
+    var calc = pricing.estimate(req.region,req.serviceType,req.urgent,
+            tier, req.voucherCode,req.desiredAt);
 
-    var match = providerMatching.suggestProviders(
-            req.region,
-            req.serviceType,
-            req.extra);
+    var provider = providerMatching.suggestProviders(req.region,req.serviceType,req.extra);
 
-    return new QuoteResponse(
-            calc.estimate(),
-            calc.taxes(),
-            calc.surcharges(),
-            calc.notes(),
-            match.providerIds(),
-            match.notes(),
-            LocalDateTime.now());
+    return QuoteResponse.builder()
+                    .estimatedPrice(calc.estimate())
+                    .taxes(calc.taxes())
+                    .surcharges(calc.surcharges())
+                    .matchingNotes(calc.notes())
+                    .suggestedProviderIds(provider.providerIds())
+                            .quoteAt(LocalDateTime.now())
+            .build();
   }
   public BookingView create(CreateBookingRequest bookReq){
     var user = users.findById(bookReq.userId).orElseThrow();
@@ -88,14 +81,14 @@ public class BookingOrchestrator {
     var booking = new Booking();
             booking.setNumber(id);/*seq.incrementAndGet()*/
             booking.userId = user.getId();
-            booking.providerId = providerId;
-            booking.serviceType = bookReq.serviceType;
-            booking.region = bookReq.region;
-            booking.scheduledAt = bookReq.scheduledAt;
-            booking.status = BookingStatus.QUOTED;
-            booking.quotedPrice = amount;
-            booking.finalPrice = null;
-            booking.notes = "init";//pay.code());
+            booking.setProviderId(providerId);
+            booking.setServiceType(bookReq.serviceType);
+            booking.setRegion(bookReq.region);
+            booking.setScheduledAt(bookReq.scheduledAt);
+            booking.setStatus(BookingStatus.QUOTED);
+            booking.setQuotedPrice(amount);
+            booking.setFinalPrice(null);
+            booking.setNotes("init");//pay.code());
     //bookings.save(booking);
 //NEW: Transition based on payment result
     if(pay.success()){
@@ -136,6 +129,9 @@ public class BookingOrchestrator {
       v.finalPrice=b.getFinalPrice();
       v.notes=b.getNotes();
       return v;});
+  }*/
+  /*public void createBookingFromQuote(String quoteId){
+    bookingService.createFromQuoteId(quoteId);
   }*/
   public BookingView start(String id) {
     var b = bookings.findById(id)

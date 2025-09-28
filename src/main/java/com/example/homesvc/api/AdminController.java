@@ -1,9 +1,7 @@
 package com.example.homesvc.api;
 
-import com.example.homesvc.config.BookingStateMachineConfig;
 import com.example.homesvc.domain.enums.Region;
 import com.example.homesvc.domain.enums.ServiceType;
-import com.example.homesvc.domain.enums.UserTier;
 import com.example.homesvc.domain.mongo.Booking;
 import com.example.homesvc.domain.mongo.Provider;
 import com.example.homesvc.domain.mongo.User;

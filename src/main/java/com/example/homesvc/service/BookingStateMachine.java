@@ -19,9 +19,9 @@ public class BookingStateMachine {
             states.put(s.status(), s);
     }
     public void apply(Booking booking, BookingEvent event){
-        var current = states.get(booking.status);
+        var current = states.get(booking.getStatus());
         if(current == null) throw new IllegalStateException("No BookingState for " +
-                booking.status);
+                booking.getStatus());
         var next = current.next(event);
         booking.setStatus(next);
     }
